@@ -23,6 +23,7 @@ log/*.log
 tmp/**/*
 config/database.yml
 db/*.sqlite3
+*.tmproj
 END
 
 generate :controller, "root"
@@ -49,6 +50,59 @@ rakefile("db.rake") do
   end
   TASK
 end
+
+# TODO: We should put this crap into a generator
+file "app/models/authentication/user_auth.rb", <<-END
+require 'digest/sha2'
+
+module Authentication
+  module User
+    
+    module ClassMethods
+      
+      def digest(password, salt)
+        Digest::SHA512.hexdigest("\#{password}\#{salt}")
+      end
+      
+      def authenticate(login, password)
+        u = find_by_login(login)
+        return (u && u.crypted_password == digest(password, u.salt)) ? u : nil      
+      end
+    end
+    
+    module InstanceMethods
+      
+      def hash_password
+        if password_changed?
+          self.salt = ActiveSupport::SecureRandom.hex(10) if !salt
+          self.crypted_password = self.class.digest(password, salt)
+        end
+      end
+      
+      def password_changed?
+        !password.blank? or !password_confirmation.blank?
+      end
+    end
+  end
+end
+END
+
+file "app/models/user.rb", <<-END
+require 'authentication/user_auth'
+
+class User < ActiveRecord::Base
+  
+  attr_accessor :password, :password_confirmation
+  
+  extend Authentication::User::ClassMethods
+  include Authentication::User::InstanceMethods
+  
+  validates_presence_of :password_confirmation, :if => :password_changed?
+  validates_confirmation_of :password, :if => :password_changed?
+  
+  before_validation :hash_password
+end
+END
 
 run "rm -rf test"
 run "rm public/index.html"
