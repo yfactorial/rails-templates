@@ -6,6 +6,8 @@ gem 'mislav-will_paginate', :lib => 'will_paginate',
   
 plugin "rspec", :git => "git://github.com/dchelimsky/rspec.git"
 plugin "rspec-rails", :git => "git://github.com/dchelimsky/rspec-rails.git"
+plugin "cucumber", :git => "git://github.com/aslakhellesoy/cucumber.git"
+plugin "webrat", :git => "git://github.com/brynary/webrat.git"
 plugin 'exception_notifier', :git => 'git://github.com/rails/exception_notification.git'
 plugin "dataset", :git => "git://github.com/aiwilliams/dataset.git"
 plugin "make_resourceful", :git => "git://github.com/hcatlin/make_resourceful.git"
